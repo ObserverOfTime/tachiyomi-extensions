@@ -1,0 +1,13 @@
+/lib/** linguist-vendored
+/buildSrc/** linguist-vendored
+/core/** linguist-vendored
+/.run/* linguist-vendored
+/gradle/libs.versions.toml linguist-vendored
+/multisrc/src/main/java/generator/* linguist-vendored
+/common.gradle linguist-vendored
+/build.gradle.kts linguist-vendored
+/ktlintCodeStyle.xml linguist-vendored
+/.editorconfig linguist-vendored
+/gradle/wrapper/* linguist-generated
+/gradlew linguist-generated
+/gradlew.bat linguist-generated

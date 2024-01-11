@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - src/
+      - multisrc/
+      - .github/workflows/ci.yml
+      - README.md
+
+concurrency:
+  group: ${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  build_extensions:
+    name: Build extensions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: Prepare signing key
+        run: base64 -d <<< ${{secrets.SIGNING_KEY}} > /tmp/signingkey.jks
+      - name: Generate sources from the multisrc library
+        uses: gradle/gradle-build-action@v2.11.1
+        with:
+          arguments: :multisrc:generateExtensions
+      - name: Build all sources
+        uses: gradle/gradle-build-action@v2.11.1
+        env:
+          KEY_ALIAS: ${{secrets.KEY_ALIAS}}
+          KEY_PASSWORD: ${{secrets.KEY_PASSWORD}}
+          KEY_STORE_PASSWORD: ${{secrets.KEY_STORE_PASSWORD}}
+          KEY_STORE_FILE: /tmp/signingkey.jks
+        with:
+          arguments: assembleRelease
+      - name: Upload extension APKs
+        uses: actions/upload-artifact@v4
+        if: github.repository == 'ObserverOfTime/tachiyomi-extensions'
+        with:
+          name: extension-apks
+          path: "**/*.apk"
+          retention-days: 1
+
+  publish_repo:
+    name: Publish repo
+    needs: [build_extensions]
+    if: github.repository == 'ObserverOfTime/tachiyomi-extensions'
+    permissions:
+      pages: write
+      id-token: write
+      contents: read
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout readme file
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: README.md
+          sparse-checkout-cone-mode: false
+      - name: Download APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: extension-apks
+          path: /tmp/apk-artifacts
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: Create repo artifacts
+        run: |
+          set -e
+          shopt -s globstar nullglob
+          mkdir -p repo/apk repo/icon
+          for apk in /tmp/apk-artifacts/**/*.apk; do
+            : "${apk##*/}"; cp "$apk" "repo/apk/${_/-release/}"
+          done
+          curl -LSs "$INSPECTOR_LINK" -o Inspector.jar
+          java -jar Inspector.jar repo/apk /tmp/output.json /tmp &>/dev/null
+          declare -i vcode nsfw has_readme has_changelog
+          TOOLS=$(find "$ANDROID_HOME/build-tools" -maxdepth 1 -type d | tail -1)
+          for apk in repo/apk/*.apk; do
+            badging="$("$TOOLS"/aapt dump --include-meta-data badging "$apk")"
+            package=$(grep package: <<< "$badging")
+            pkgname=$(grep -Po "package: name='\K[^']+" <<< "$package")
+            vcode=$(grep -Po "versionCode='\K[^']+" <<< "$package")
+            vname=$(grep -Po "versionName='\K[^']+" <<< "$package")
+            nsfw=$(grep -Po "tachiyomi.extension.nsfw' value='\K[^']+" <<< "$badging")
+            has_readme=$(grep -Po "tachiyomi.extension.hasReadme' value='\K[^']+" <<< "$badging")
+            has_changelog=$(grep -Po "tachiyomi.extension.hasChangelog' value='\K[^']+" <<< "$badging")
+            application=$(grep application: <<< "$badging")
+            label=$(grep -Po "label='\K[^']+" <<< "$application")
+            lang=$(grep -Po "tachiyomi-\K[^\.]+" <<< "$apk")
+            icon=$(grep -Po "application-icon-320.*'\K[^']+" <<< "$badging")
+            source_info=$(jq ".\"$pkgname\"" < /tmp/output.json)
+            source_len=$(jq length <<< "$source_info")
+            if [[ $source_len -eq 1 ]]; then
+                source_lang=$(jq -r '.[0].lang' <<< "$source_info")
+                if [[ $source_lang != "$lang" ]] && \
+                   [[ $source_lang != all ]] && \
+                   [[ $source_lang != other ]] && \
+                   [[ $lang != all ]] && \
+                   [[ $lang != other ]]; then
+                    lang=$source_lang
+                fi
+            fi
+            unzip -p "$apk" "$icon" > "repo/icon/$pkgname.png"
+            jq -n \
+                --arg name "$label" \
+                --arg pkg "$pkgname" \
+                --arg apk "${apk##*/}" \
+                --arg lang "$lang" \
+                --argjson code $vcode \
+                --arg version "$vname" \
+                --argjson nsfw $nsfw \
+                --argjson hasReadme $has_readme \
+                --argjson hasChangelog $has_changelog \
+                --argjson sources "$source_info" \
+                '{$name, $pkg, $apk, $lang, $code, $version, $nsfw, $hasReadme, $hasChangelog, $sources}'
+          done | jq -sr '[.[]]' > repo/index.json
+          jq -c < repo/index.json > repo/index.min.json \
+            'map(del(.hasReadme, .hasChangelog, .sources[]["versionId", "hasCloudflare"]))'
+          cat repo/index.json
+        env:
+          INSPECTOR_LINK: https://github.com/tachiyomiorg/tachiyomi-extensions-inspector/releases/download/v1.4.2/Tachiyomi.Extensions.Inspector-v1.4.2-r1.jar
+      - name: Generate APK directory listing
+        uses: jayanta525/github-pages-directory-listing@v4.0.0
+        with:
+          FOLDER: repo
+      - name: Convert README to HTML
+        run: |
+          # use sudo to prevent random EACCES
+          sudo npx -y markdown-to-html-cli \
+            --source README.md \
+            --output repo/index.html \
+            --title 'Tachiyomi Extensions' \
+            --favicon "$TACHIYOMI_FAVICON" \
+            --github-corners "https://github.com/$GITHUB_REPOSITORY"
+        env:
+          TACHIYOMI_FAVICON: ${{vars.TACHIYOMI_FAVICON}}
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: repo
+          retention-days: 1
+      - id: deployment
+        name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
