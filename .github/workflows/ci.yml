@@ -34,7 +34,7 @@ jobs:
       - name: Build all sources
         uses: gradle/gradle-build-action@v2.11.1
         env:
-          KEY_ALIAS: ${{secrets.KEY_ALIAS}}
+          KEY_ALIAS: tachiyomi
           KEY_PASSWORD: ${{secrets.KEY_PASSWORD}}
           KEY_STORE_PASSWORD: ${{secrets.KEY_STORE_PASSWORD}}
           KEY_STORE_FILE: /tmp/signingkey.jks
