@@ -6,7 +6,6 @@ This repository contains my extensions for the [Tachiyomi](https://tachiyomi.org
 
 ### Individual
 
-- Kouhai Work
 - League of Legends
 - Pepper&Carrot[^1]
 - vgperson
