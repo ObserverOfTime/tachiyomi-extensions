@@ -4,9 +4,7 @@ include(":multisrc")
 project(":multisrc").projectDir = File("multisrc")
 
 File(rootDir, "lib").eachDir {
-    val libName = it.name
-    include(":lib-$libName")
-    project(":lib-$libName").projectDir = File("lib/$libName")
+    include(":lib:${it.name}")
 }
 
 File(rootDir, "src").eachDir { dir ->
@@ -25,6 +23,5 @@ File(rootDir, "generated-src").eachDir { dir ->
     }
 }
 
-fun File.eachDir(block: (File) -> Unit) {
+fun File.eachDir(block: (File) -> Unit) =
     listFiles()?.filter { it.isDirectory }?.forEach(block)
-}

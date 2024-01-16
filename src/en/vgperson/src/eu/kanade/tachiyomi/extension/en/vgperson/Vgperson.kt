@@ -8,7 +8,6 @@ import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.model.SChapter
 import eu.kanade.tachiyomi.source.model.SManga
 import eu.kanade.tachiyomi.source.online.ParsedHttpSource
-import okhttp3.Headers
 import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element

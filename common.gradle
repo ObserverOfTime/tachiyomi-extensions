@@ -1,3 +1,5 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 apply plugin: 'org.jmailen.kotlinter'
 
 android {
@@ -22,10 +24,10 @@ android {
     defaultConfig {
         minSdkVersion AndroidConfig.minSdk
         targetSdkVersion AndroidConfig.targetSdk
-        applicationIdSuffix pkgNameSuffix
+        applicationIdSuffix "${project.parent.name}.${project.name}"
         versionCode extVersionCode
         versionName project.ext.properties.getOrDefault("libVersion", "1.4") + ".$extVersionCode"
-        setProperty("archivesBaseName", "tachiyomi-$pkgNameSuffix-v$versionName")
+        base.archivesName = "tachiyomi-$applicationIdSuffix-v$versionName"
         def readmes = project.projectDir.listFiles({ File file ->
             file.name == "README.md" || file.name == "CHANGELOG.md"
         } as FileFilter)
@@ -71,6 +73,7 @@ android {
         renderScript false
         resValues false
         shaders false
+        buildConfig true
     }
 
     compileOptions {
