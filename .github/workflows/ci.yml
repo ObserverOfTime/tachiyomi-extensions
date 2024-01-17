@@ -4,10 +4,10 @@ on:
   push:
     branches: [master]
     paths:
-      - src/
-      - multisrc/
-      - .github/workflows/ci.yml
-      - README.md
+      - "src/**"
+      - "multisrc/**"
+      - ".github/workflows/ci.yml"
+      - "README.md"
 
 concurrency:
   group: ${{github.workflow}}
@@ -131,7 +131,7 @@ jobs:
             'map(del(.hasReadme, .hasChangelog, .sources[]["versionId", "hasCloudflare"]))'
           cat repo/index.json
         env:
-          INSPECTOR_LINK: https://github.com/tachiyomiorg/tachiyomi-extensions-inspector/releases/download/v1.4.2/Tachiyomi.Extensions.Inspector-v1.4.2-r1.jar
+          INSPECTOR_LINK: https://github.com/keiyoushi/extensions-inspector/releases/download/v1.4.6/Tachiyomi.Extensions.Inspector-v1.4.6-r1.jar
       - name: Generate APK directory listing
         uses: jayanta525/github-pages-directory-listing@v4.0.0
         with:
@@ -142,6 +142,8 @@ jobs:
           sudo npx -y markdown-to-html-cli \
             --source README.md \
             --output repo/index.html \
+            --dark-mode auto \
+            --markdown-style-theme dark \
             --title 'Tachiyomi Extensions' \
             --favicon "$TACHIYOMI_FAVICON" \
             --github-corners "https://github.com/$GITHUB_REPOSITORY"
