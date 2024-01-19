@@ -1,7 +1,5 @@
 package eu.kanade.tachiyomi.extension.en.vgperson
 
-import android.os.Build.VERSION
-import eu.kanade.tachiyomi.AppInfo
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.source.model.FilterList
@@ -14,11 +12,9 @@ import okhttp3.Headers
 import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import org.jsoup.nodes.TextNode
 import rx.Observable
 
 class Vgperson : ParsedHttpSource() {
-
     override val name = "vgperson"
 
     override val lang = "en"
@@ -27,16 +23,14 @@ class Vgperson : ParsedHttpSource() {
 
     override val baseUrl = "https://vgperson.com/other/mangaviewer.php"
 
-    private val userAgent = "Mozilla/5.0 " +
-        "(Android ${VERSION.RELEASE}; Mobile) " +
-        "Tachiyomi/${AppInfo.getVersionName()}"
-
-    override fun headersBuilder() = Headers.Builder().apply {
-        add("User-Agent", userAgent)
+    override fun headersBuilder() = super.headersBuilder().apply {
         add("Referer", baseUrl)
+        System.getProperty("http.agent")?.let {
+            set("User-Agent", it)
+        }
     }
 
-    override fun popularMangaSelector() = ".content a[href^=?m]"
+    override fun popularMangaSelector() = ".nospace > a[href^=?m]"
 
     override fun popularMangaNextPageSelector(): String? = null
 
@@ -59,35 +53,25 @@ class Vgperson : ParsedHttpSource() {
         }
 
     override fun mangaDetailsParse(document: Document) = SManga.create().apply {
-        status = when (document.select(".chaptername").first()!!.text()) {
+        status = when (document.selectFirst(".complete")?.text()) {
             "(Complete)" -> SManga.COMPLETED
             "(Series in Progress)" -> SManga.ONGOING
             else -> SManga.UNKNOWN
         }
-        description = document.select(".content").first()!!
-            .childNodes().drop(5).takeWhile {
-                it.nodeName() != "table"
-            }.joinToString("") {
-                if (it is TextNode) {
-                    it.text()
-                } else {
-                    when ((it as Element).tagName()) {
-                        "br" -> "\n"
-                        else -> it.text()
-                    }
-                }
-            }
+        description = document
+            .selectXpath("//p[not(@class) and following-sibling::table]")
+            .joinToString("\n") { it.text() }
     }
 
-    override fun chapterListSelector() = ".chaptertable tbody tr"
+    override fun chapterListSelector() = ".chaptertable > tbody > tr"
 
     override fun chapterFromElement(element: Element) = SChapter.create().apply {
-        element.select("td > a").first()!!.let {
+        element.selectFirst("td:first-of-type > a")!!.let {
             name = it.text()
             url = it.attr("href")
         }
         // append the name if it exists & remove the occasional hyphen
-        element.select(".chaptername").first()?.let {
+        element.selectFirst("td:nth-of-type(2)")?.let {
             name += " - ${it.text().substringAfter("- ")}"
         }
         // hardcode special chapter numbers for Three Days of Happiness
@@ -103,8 +87,10 @@ class Vgperson : ParsedHttpSource() {
     override fun pageListParse(document: Document) =
         document.select("img").mapIndexed { i, img -> Page(i, "", img.attr("src")) }
 
-    override fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> = fetchPopularManga(1)
-        .map { mp -> MangasPage(mp.mangas.filter { it.title.contains(query, ignoreCase = true) }, false) }
+    override fun fetchSearchManga(page: Int, query: String, filters: FilterList): Observable<MangasPage> =
+        fetchPopularManga(1).map { mp ->
+            MangasPage(mp.mangas.filter { it.title.contains(query, ignoreCase = true) }, false)
+        }
 
     // get known manga covers from imgur
     private fun getCover(title: String) = when (title) {
