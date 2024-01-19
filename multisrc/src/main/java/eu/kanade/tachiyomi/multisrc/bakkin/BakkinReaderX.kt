@@ -1,10 +1,8 @@
 package eu.kanade.tachiyomi.multisrc.bakkin
 
 import android.app.Application
-import android.os.Build
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceScreen
-import eu.kanade.tachiyomi.AppInfo
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.source.ConfigurableSource
@@ -17,7 +15,6 @@ import eu.kanade.tachiyomi.source.online.HttpSource
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
-import okhttp3.Headers
 import okhttp3.Response
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -28,10 +25,6 @@ abstract class BakkinReaderX(
     override val lang: String,
 ) : ConfigurableSource, HttpSource() {
     override val supportsLatest = false
-
-    private val userAgent = "Mozilla/5.0 (" +
-        "Android ${Build.VERSION.RELEASE}; Mobile) " +
-        "Tachiyomi/${AppInfo.getVersionName()}"
 
     protected val preferences by lazy {
         Injekt.get<Application>().getSharedPreferences("source_$id", 0x0000)!!
@@ -58,8 +51,12 @@ abstract class BakkinReaderX(
     private fun List<Series>.search(query: String) =
         if (query.isBlank()) this else filter { it.toString().contains(query, true) }
 
-    override fun headersBuilder() =
-        Headers.Builder().add("User-Agent", userAgent)
+    override fun headersBuilder() = super.headersBuilder().apply {
+        add("Referer", baseUrl)
+        System.getProperty("http.agent")?.let {
+            set("User-Agent", it)
+        }
+    }
 
     override fun fetchPopularManga(page: Int) =
         fetchSearchManga(page, "", FilterList())
