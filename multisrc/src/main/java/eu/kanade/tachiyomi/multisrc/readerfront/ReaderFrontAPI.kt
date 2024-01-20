@@ -1,8 +1,9 @@
+@file:Suppress("PropertyName", "PrivatePropertyName")
+
 package eu.kanade.tachiyomi.multisrc.readerfront
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -35,7 +36,7 @@ data class Release(
     val chapter: Int,
     val subchapter: Int,
     val volume: Int,
-    private val name: String,
+    val name: String,
     private val releaseDate: String,
 ) {
     @Transient
@@ -44,19 +45,10 @@ data class Release(
     @Transient
     val timestamp = dateFormat.parse(releaseDate)?.time ?: 0L
 
-    override fun toString() = buildString {
-        if (number > 0) {
-            if (volume > 0) append("Volume $volume ")
-            append("Chapter ${decimalFormat.format(number)}")
-            if (name.isNotEmpty()) append(": ")
-        }
-        append(name)
-    }
+    override fun toString() = name
 
     companion object {
         private const val ISO_DATE = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-
-        private val decimalFormat = DecimalFormat("#.##")
 
         private val dateFormat = SimpleDateFormat(ISO_DATE, Locale.ROOT)
     }

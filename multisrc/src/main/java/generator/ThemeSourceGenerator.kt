@@ -119,9 +119,11 @@ interface ThemeSourceGenerator {
             val projectSrcPath = "$projectRootPath/src/eu/kanade/tachiyomi/extension/${pkgNameSuffix(source, "/")}"
             val overridesPath = "$userDir/multisrc/overrides/$themePkg/${source.pkgName}"
             val defaultResPath = "$userDir/multisrc/overrides/$themePkg/default/res"
+            val defaultAssetsPath = "$userDir/multisrc/overrides/$themePkg/default/assets"
             val defaultAndroidManifestPath = "$userDir/multisrc/overrides/$themePkg/default/AndroidManifest.xml"
             val defaultAdditionalGradlePath = "$userDir/multisrc/overrides/$themePkg/default/additional.gradle"
             val resOverridePath = "$overridesPath/res"
+            val assetsOverridePath = "$overridesPath/assets"
             val srcOverridePath = "$overridesPath/src"
             val manifestOverridePath = "$overridesPath/AndroidManifest.xml"
             val additionalGradleOverridePath = "$overridesPath/additional.gradle"
@@ -142,6 +144,7 @@ interface ThemeSourceGenerator {
                 copyThemeClasses(userDir, themePkg, projectRootPath)
                 copyThemeReadmes(userDir, themePkg, overridesPath, projectRootPath)
                 copyResFiles(resOverridePath, defaultResPath, source, projectRootPath)
+                copyAssetsFiles(assetsOverridePath, defaultAssetsPath, source, projectRootPath)
             }
         }
 
@@ -172,6 +175,18 @@ interface ThemeSourceGenerator {
             File(themeSrcPath).list()
                 ?.filter { it.endsWith(".kt") && !it.endsWith("Generator.kt") && !it.endsWith("Gen.kt") }
                 ?.forEach { Files.copy(File("$themeSrcPath/$it").toPath(), File("$themeDestPath/$it").toPath(), StandardCopyOption.REPLACE_EXISTING) }
+        }
+
+        private fun copyAssetsFiles(assetsOverridePath: String, defaultAssetsPath: String, source: ThemeSourceData, projectRootPath: String): Any {
+            // check if assets override exists if not copy default assets
+            val assetsOverride = File(assetsOverridePath)
+            return if (assetsOverride.exists()) {
+                assetsOverride.copyRecursively(File("$projectRootPath/assets"))
+            } else {
+                File(defaultAssetsPath).let { defaultAssetsFile ->
+                    if (defaultAssetsFile.exists()) defaultAssetsFile.copyRecursively(File("$projectRootPath/assets"))
+                }
+            }
         }
 
         private fun copyResFiles(resOverridePath: String, defaultResPath: String, source: ThemeSourceData, projectRootPath: String): Any {

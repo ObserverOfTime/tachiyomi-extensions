@@ -1,5 +1,6 @@
 package eu.kanade.tachiyomi.multisrc.readerfront
 
+import eu.kanade.tachiyomi.lib.i18n.Intl
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.asObservableSuccess
 import eu.kanade.tachiyomi.source.model.FilterList
@@ -20,6 +21,7 @@ import kotlinx.serialization.json.put
 import okhttp3.Request
 import okhttp3.Response
 import uy.kohesive.injekt.injectLazy
+import java.text.DecimalFormat
 
 abstract class ReaderFront(
     final override val name: String,
@@ -30,23 +32,27 @@ abstract class ReaderFront(
 
     private val json by injectLazy<Json>()
 
-    private val i18n = ReaderFrontI18N(lang)
+    private val intl by lazy {
+        Intl(lang, availableLangs, "en", javaClass.classLoader!!)
+    }
+
+    private val langId = availableLangs.indexOf(lang) + 1
 
     open val apiUrl = baseUrl.replaceFirst("://", "://api.")
 
     abstract fun getImageCDN(path: String, width: Int = 350): String
 
     override fun latestUpdatesRequest(page: Int) =
-        GET("$apiUrl?query=${works(i18n.id, "updatedAt", "DESC", page, 12)}", headers)
+        GET("$apiUrl?query=${works(langId, "updatedAt", "DESC", page, 12)}", headers)
 
     override fun popularMangaRequest(page: Int) =
-        GET("$apiUrl?query=${works(i18n.id, "stub", "ASC", page, 120)}", headers)
+        GET("$apiUrl?query=${works(langId, "stub", "ASC", page, 120)}", headers)
 
     override fun mangaDetailsRequest(manga: SManga) =
-        GET("$apiUrl?query=${work(i18n.id, manga.url)}", headers)
+        GET("$apiUrl?query=${work(langId, manga.url)}", headers)
 
     override fun chapterListRequest(manga: SManga) =
-        GET("$apiUrl?query=${chaptersByWork(i18n.id, manga.url)}#${manga.url}", headers)
+        GET("$apiUrl?query=${chaptersByWork(langId, manga.url)}#${manga.url}", headers)
 
     override fun pageListRequest(chapter: SChapter): Request {
         val jsonObj = json.parseToJsonElement(chapter.url).jsonObject
@@ -80,7 +86,7 @@ abstract class ReaderFront(
                     append(it.demographic_name!!)
                     if (it.genres!!.isNotEmpty()) {
                         append(", ")
-                        it.genres.joinTo(this, transform = i18n::get)
+                        it.genres.joinTo(this) { intl["genre.$it"] }
                     }
                     append(", ")
                     append(it.type!!)
@@ -89,6 +95,7 @@ abstract class ReaderFront(
                     it.licensed!! -> SManga.LICENSED
                     it.status_name == "on_going" -> SManga.ONGOING
                     it.status_name == "completed" -> SManga.COMPLETED
+                    it.status_name == "dropped" -> SManga.CANCELLED
                     else -> SManga.UNKNOWN
                 }
                 initialized = true
@@ -107,7 +114,14 @@ abstract class ReaderFront(
                     put("subchapter", it.subchapter)
                 }
                 url = json.encodeToString(jsonObject)
-                name = it.toString()
+                name = buildString {
+                    if (it.number > 0) {
+                        if (it.volume > 0) append(intl.format("volume", it.volume))
+                        append(intl.format("chapter", decimalFormat.format(it.number)))
+                        if (it.name.isNotEmpty()) append(": ")
+                    }
+                    append(it.name)
+                }
                 chapter_number = it.number
                 date_upload = it.timestamp
             }
@@ -127,9 +141,9 @@ abstract class ReaderFront(
         val jsonObj = json.parseToJsonElement(chapter.url).jsonObject
         val stub = jsonObj["stub"]!!.jsonPrimitive.content
         val volume = jsonObj["volume"]!!.jsonPrimitive.content
-        val chpter = jsonObj["chapter"]!!.jsonPrimitive.content
-        val subChpter = jsonObj["subchapter"]!!.jsonPrimitive.content
-        return "$baseUrl/read/$stub/$lang/$volume/$chpter.$subChpter"
+        val chap = jsonObj["chapter"]!!.jsonPrimitive.content
+        val subChap = jsonObj["subchapter"]!!.jsonPrimitive.content
+        return "$baseUrl/read/$stub/$lang/$volume/$chap.$subChap"
     }
 
     override fun fetchSearchManga(page: Int, query: String, filters: FilterList) =
@@ -172,4 +186,10 @@ abstract class ReaderFront(
 
     override fun imageUrlParse(response: Response) =
         throw UnsupportedOperationException()
+
+    companion object {
+        private val availableLangs = setOf("es", "en")
+
+        private val decimalFormat = DecimalFormat("#.##")
+    }
 }
