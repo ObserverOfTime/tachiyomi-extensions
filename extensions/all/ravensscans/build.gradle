@@ -1,0 +1,18 @@
+ext {
+    extName = 'Ravens Scans'
+    extClass = '.RavensScansFactory'
+    extFactory = 'readerfront'
+    extVersionCode = 1
+    isNsfw = true
+}
+
+apply from: parent.parent.file('common.gradle')
+
+android {
+    defaultConfig {
+        manifestPlaceholders += [
+            sourceHost: "ravens-scans.com",
+            sourceScheme: "https"
+        ]
+    }
+}

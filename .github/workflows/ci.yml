@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
     paths:
-      - "src/**"
+      - "extensions/**"
       - "multisrc/**"
       - ".github/workflows/ci.yml"
       - "README.md"
@@ -27,10 +27,6 @@ jobs:
           distribution: temurin
       - name: Prepare signing key
         run: base64 -d <<< ${{secrets.SIGNING_KEY}} > /tmp/signingkey.jks
-      - name: Generate sources from the multisrc library
-        uses: gradle/gradle-build-action@v2.11.1
-        with:
-          arguments: :multisrc:generateExtensions
       - name: Build all sources
         uses: gradle/gradle-build-action@v2.11.1
         env:

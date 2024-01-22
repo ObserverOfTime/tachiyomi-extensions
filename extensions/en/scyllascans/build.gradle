@@ -1,0 +1,17 @@
+ext {
+    extName = 'Scylla Scans'
+    extClass = '.ScyllaScans'
+    extFactory = 'readerfront'
+    extVersionCode = 2
+}
+
+apply from: parent.parent.file('common.gradle')
+
+android {
+    defaultConfig {
+        manifestPlaceholders += [
+            sourceHost: "scyllascans.org",
+            sourceScheme: "https"
+        ]
+    }
+}

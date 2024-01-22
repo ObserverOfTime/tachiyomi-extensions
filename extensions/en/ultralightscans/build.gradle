@@ -1,0 +1,8 @@
+ext {
+    extName = 'UltraLight Scans'
+    extClass = '.UltraLightScans'
+    extFactory = 'bakkin'
+    extVersionCode = 1
+}
+
+apply from: parent.parent.file('common.gradle')

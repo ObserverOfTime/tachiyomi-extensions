@@ -1,9 +1,0 @@
-apply plugin: 'kotlinx-serialization'
-
-ext {
-    extName = 'League of Legends'
-    extClass = '.LOLFactory'
-    extVersionCode = 2
-}
-
-apply from: "$rootDir/common.gradle"

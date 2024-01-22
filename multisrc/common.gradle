@@ -1,0 +1,40 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlinx-serialization'
+
+android {
+    namespace "eu.kanade.tachiyomi.multisrc.${project.name}"
+
+    sourceSets {
+        main {
+            manifest.srcFile "AndroidManifest.xml"
+            java.srcDirs = ["src"]
+            res.srcDirs = ["res"]
+            assets.srcDirs = ["assets"]
+        }
+    }
+
+    defaultConfig {
+        compileSdk AndroidConfig.compileSdk
+        minSdkVersion AndroidConfig.minSdk
+        targetSdkVersion AndroidConfig.targetSdk
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    kotlinOptions {
+        freeCompilerArgs += "-opt-in=kotlinx.serialization.ExperimentalSerializationApi"
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly(libs.bundles.common)
+}
