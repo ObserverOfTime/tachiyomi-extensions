@@ -9,8 +9,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-
-        <data android:host="*.${sourceHost}"/>
+        <data android:host="${sourceHost}"/>
         <data android:scheme="${sourceScheme}"/>
         <data android:pathPattern="/manga/..*"/>
       </intent-filter>
