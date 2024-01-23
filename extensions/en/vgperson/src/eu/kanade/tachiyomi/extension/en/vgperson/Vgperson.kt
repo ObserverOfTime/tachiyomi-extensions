@@ -75,7 +75,7 @@ class Vgperson : ParsedHttpSource() {
         }
         // hardcode special chapter numbers for Three Days of Happiness
         chapter_number = url.substringAfterLast("c=").toFloatOrNull()
-            ?: (16.5f + "0.${url.substringAfterLast("b=")}".toFloat())
+            ?: (16.5f + url.substringAfterLast("b=").toFloat() / 10)
         scanlator = "vgperson"
         date_upload = 0L
     }
