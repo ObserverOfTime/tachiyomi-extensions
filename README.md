@@ -16,7 +16,9 @@ This repository contains my extensions for the Tachiyomi/Mihon app.
   - Bakkin
   - Bakkin Self-hosted
   - UltraLight Scans
-- MangAdventure[^2]
+- MangAdventure
+  - Arc-Relight
+  - Assorted Scans
 - MonochromeCMS
   - Monochrome Scans
   - Monochrome Custom
@@ -51,4 +53,3 @@ Extension sources can be downloaded, installed, and uninstalled via the main Tac
 Alternatively, you can download the `.apk` you want from [here](https://observeroftime.github.io/tachiyomi-extensions/apk/) and install it manually.
 
 [^1]: [In another repo.](https://observeroftime.frama.io/tachiyomi-peppercarrot/)
-[^2]: [In another repo.](https://mangadventure.github.io/tachiyomi-extensions/)

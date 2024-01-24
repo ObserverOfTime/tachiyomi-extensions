@@ -1,0 +1,17 @@
+ext {
+    extName = 'Assorted Scans'
+    extClass = '.AssortedScans'
+    extFactory = 'mangadventure'
+    extVersionCode = 4
+}
+
+apply from: parent.parent.file('common.gradle')
+
+android {
+    defaultConfig {
+        manifestPlaceholders += [
+                sourceHost: "assortedscans.com",
+                sourceScheme: "https"
+        ]
+    }
+}

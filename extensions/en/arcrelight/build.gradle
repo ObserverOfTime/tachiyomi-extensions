@@ -1,0 +1,17 @@
+ext {
+    extName = 'Arc-Relight'
+    extClass = '.ArcRelight'
+    extFactory = 'mangadventure'
+    extVersionCode = 2
+}
+
+apply from: parent.parent.file('common.gradle')
+
+android {
+    defaultConfig {
+        manifestPlaceholders += [
+                sourceHost: "arc-relight.com",
+                sourceScheme: "https"
+        ]
+    }
+}
