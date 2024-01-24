@@ -1,0 +1,7 @@
+ext {
+    extName = 'Pepper&Carrot'
+    extClass = '.PepperCarrotFactory'
+    extVersionCode = 1
+}
+
+apply from: parent.parent.file('common.gradle')
