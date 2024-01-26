@@ -25,23 +25,25 @@ jobs:
         with:
           java-version: 17
           distribution: temurin
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
       - name: Prepare signing key
-        run: base64 -d <<< ${{secrets.SIGNING_KEY}} > /tmp/signingkey.jks
-      - name: Clone Pepper&Carrot source
+        run: base64 -d <<< "$SIGNING_KEY" > /tmp/signingkey.jks
+        env:
+          SIGNING_KEY: ${{secrets.SIGNING_KEY}}
+      - name: Clone Pepper&Carrot extension
         run: |
           git clone --depth=1 $REPO_URL /tmp/peppercarrot
           cp -r /tmp/peppercarrot/{res,src} extensions/all/peppercarrot
         env:
           REPO_URL: https://framagit.org/ObserverOfTime/tachiyomi-peppercarrot
-      - name: Build all sources
-        uses: gradle/gradle-build-action@v2.11.1
+      - name: Build all extensions
+        run: ./gradlew assembleRelease
         env:
           KEY_ALIAS: tachiyomi
           KEY_PASSWORD: ${{secrets.KEY_PASSWORD}}
           KEY_STORE_PASSWORD: ${{secrets.KEY_STORE_PASSWORD}}
           KEY_STORE_FILE: /tmp/signingkey.jks
-        with:
-          arguments: assembleRelease
       - name: Upload extension APKs
         uses: actions/upload-artifact@v4
         if: github.repository == 'ObserverOfTime/tachiyomi-extensions'
@@ -139,12 +141,11 @@ jobs:
         with:
           FOLDER: repo
       - name: Convert README to HTML
+        # XXX: uses sudo to prevent random EACCES
         run: |
-          # use sudo to prevent random EACCES
           sudo npx -y markdown-to-html-cli \
             --source README.md \
             --output repo/index.html \
-            --dark-mode auto \
             --markdown-style-theme dark \
             --title 'Tachiyomi Extensions' \
             --favicon "$TACHIYOMI_FAVICON" \

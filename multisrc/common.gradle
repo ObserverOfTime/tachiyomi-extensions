@@ -15,9 +15,9 @@ android {
     }
 
     defaultConfig {
+        minSdk AndroidConfig.minSdk
+        targetSdk AndroidConfig.targetSdk
         compileSdk AndroidConfig.compileSdk
-        minSdkVersion AndroidConfig.minSdk
-        targetSdkVersion AndroidConfig.targetSdk
     }
 
     buildTypes {

@@ -10,9 +10,7 @@ apply from: parent.parent.file('common.gradle')
 
 android {
     defaultConfig {
-        manifestPlaceholders += [
-            sourceHost: "ravens-scans.com",
-            sourceScheme: "https"
-        ]
+        manifestPlaceholders['sourceScheme'] = 'https'
+        manifestPlaceholders['sourceHost'] = 'ravens-scans.com'
     }
 }

@@ -5,14 +5,9 @@ apply plugin: "org.jmailen.kotlinter"
 def libVersion = libs.versions.extensions.get()[0..2]
 def theme = ext.has("extFactory") ? project(":multisrc:$extFactory") : null
 def keyStoreFile = System.getenv("KEY_STORE_FILE") ?: "$rootDir/signingkey.jks"
-def readmes = projectDir.list { _, name ->
-    name == "README.md" || name == "CHANGELOG.md"
-}
 
 android {
     namespace "eu.kanade.tachiyomi.extension"
-
-    compileSdkVersion AndroidConfig.compileSdk
 
     sourceSets {
         main {
@@ -30,8 +25,9 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion AndroidConfig.minSdk
-        targetSdkVersion AndroidConfig.targetSdk
+        minSdk AndroidConfig.minSdk
+        targetSdk AndroidConfig.targetSdk
+        compileSdk AndroidConfig.compileSdk
         applicationIdSuffix "${parent.name}.${project.name}"
         versionCode extVersionCode + (theme?.baseVersionCode ?: 0)
         versionName "$libVersion.$versionCode"
@@ -39,10 +35,7 @@ android {
         manifestPlaceholders = [
                 appName: "Tachiyomi: $extName",
                 extClass: extClass,
-                extFactory: ext.properties.getOrDefault("extFactory", ""),
-                isNsfw: ext.properties.getOrDefault("isNsfw", false) ? 1 : 0,
-                hasReadme: readmes.any { it.startsWith("README") } ? 1 : 0,
-                hasChangelog: readmes.any { name.startsWith("CHANGELOG") } ? 1 : 0,
+                isNsfw: project.ext.has("isNsfw") ? 1 : 0
         ]
     }
 
@@ -67,8 +60,6 @@ android {
     }
 
     buildFeatures {
-        aidl false
-        renderScript false
         resValues false
         shaders false
         buildConfig true
