@@ -1,7 +1,7 @@
 ext {
     extName = 'Pepper&Carrot'
     extClass = '.PepperCarrotFactory'
-    extVersionCode = 1
+    extVersionCode = 3
 }
 
 apply from: parent.parent.file('common.gradle')
