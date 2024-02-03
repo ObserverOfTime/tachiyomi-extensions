@@ -1,6 +1,6 @@
 # Tachiyomi Extensions
 
-This repository contains my extensions for the Tachiyomi/Mihon app.
+This repository contains my extensions for the Tachiyomi app and its derivatives.
 
 ## Extensions
 
@@ -33,20 +33,14 @@ Extension sources can be downloaded, installed, and uninstalled via the main Tac
 
 ### Add the Repository
 
-#### Tachiyomi / TachiyomiJ2K / TachiyomiSY / Mihon / Yokai
-
 <object data="https://img.shields.io/badge/One%20Click%20Install-818cf8?style=for-the-badge&link=tachiyomi%3A%2F%2Fadd-repo%3Furl%3Dhttps%3A%2F%2Fobserveroftime.github.io%2Ftachiyomi-extensions%2Findex.min.json" type="image/svg+xml">
   <a href="tachiyomi://add-repo?url=https://observeroftime.github.io/tachiyomi-extensions/index.min.json">
     <img src="https://img.shields.io/badge/One%20Click%20Install-818cf8?style=for-the-badge&link=tachiyomi%3A%2F%2Fadd-repo%3Furl%3Dhttps%3A%2F%2Fobserveroftime.github.io%2Ftachiyomi-extensions%2Findex.min.json" alt="One Click Install">
   </a>
 </object>
 
-#### TachiyomiAZ
-
-1. Go to Settings → Browse
-2. Tap on "Edit repos" and then "+" button at bottom
-3. Input `https://observeroftime.github.io/tachiyomi-extensions/index.min.json`
-4. Enjoy!
+If the button doesn't work, add the repo manually using this link:
+<br/>https://observeroftime.github.io/tachiyomi-extensions/index.min.json
 
 ### Downloads
 

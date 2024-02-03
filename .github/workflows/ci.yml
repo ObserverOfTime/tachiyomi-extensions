@@ -28,7 +28,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
       - name: Prepare signing key
-        run: base64 -d <<< "$SIGNING_KEY" > /tmp/signingkey.jks
+        run: base64 -d <<< "$SIGNING_KEY" > signingkey.jks
         env:
           SIGNING_KEY: ${{secrets.SIGNING_KEY}}
       - name: Clone Pepper&Carrot extension
@@ -43,10 +43,9 @@ jobs:
           KEY_ALIAS: tachiyomi
           KEY_PASSWORD: ${{secrets.KEY_PASSWORD}}
           KEY_STORE_PASSWORD: ${{secrets.KEY_STORE_PASSWORD}}
-          KEY_STORE_FILE: /tmp/signingkey.jks
       - name: Upload extension APKs
         uses: actions/upload-artifact@v4
-        if: github.repository == 'ObserverOfTime/tachiyomi-extensions'
+        if: github.repository_owner == 'ObserverOfTime'
         with:
           name: extension-apks
           path: "**/*.apk"
@@ -55,7 +54,7 @@ jobs:
   publish_repo:
     name: Publish repo
     needs: [build_extensions]
-    if: github.repository == 'ObserverOfTime/tachiyomi-extensions'
+    if: github.repository_owner == 'ObserverOfTime'
     permissions:
       pages: write
       id-token: write
@@ -75,22 +74,23 @@ jobs:
         with:
           name: extension-apks
           path: /tmp/apk-artifacts
+          overwrite: true
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
       - name: Create repo artifacts
+        shell: bash
         run: |
-          set -e
           shopt -s globstar nullglob
-          mkdir -p repo/apk repo/icon
+          mkdir -p repo/{apk,icon}
           for apk in /tmp/apk-artifacts/**/*.apk; do
             : "${apk##*/}"; cp "$apk" "repo/apk/${_/-release/}"
           done
           curl -LSs "$INSPECTOR_LINK" -o Inspector.jar
           java -jar Inspector.jar repo/apk /tmp/output.json /tmp &>/dev/null
-          declare -i vcode nsfw has_readme has_changelog
+          declare -i vcode nsfw
           TOOLS=$(find "$ANDROID_HOME/build-tools" -maxdepth 1 -type d | tail -1)
           for apk in repo/apk/*.apk; do
             badging="$("$TOOLS"/aapt dump --include-meta-data badging "$apk")"
@@ -99,8 +99,6 @@ jobs:
             vcode=$(grep -Po "versionCode='\K[^']+" <<< "$package")
             vname=$(grep -Po "versionName='\K[^']+" <<< "$package")
             nsfw=$(grep -Po "tachiyomi.extension.nsfw' value='\K[^']+" <<< "$badging")
-            has_readme=$(grep -Po "tachiyomi.extension.hasReadme' value='\K[^']+" <<< "$badging")
-            has_changelog=$(grep -Po "tachiyomi.extension.hasChangelog' value='\K[^']+" <<< "$badging")
             application=$(grep application: <<< "$badging")
             label=$(grep -Po "label='\K[^']+" <<< "$application")
             lang=$(grep -Po "tachiyomi-\K[^\.]+" <<< "$apk")
@@ -126,8 +124,8 @@ jobs:
                 --argjson code $vcode \
                 --arg version "$vname" \
                 --argjson nsfw $nsfw \
-                --argjson hasReadme $has_readme \
-                --argjson hasChangelog $has_changelog \
+                --argjson hasReadme 0 \
+                --argjson hasChangelog 0 \
                 --argjson sources "$source_info" \
                 '{$name, $pkg, $apk, $lang, $code, $version, $nsfw, $hasReadme, $hasChangelog, $sources}'
           done | jq -sr '[.[]]' > repo/index.json
@@ -152,6 +150,17 @@ jobs:
             --github-corners "https://github.com/$GITHUB_REPOSITORY"
         env:
           TACHIYOMI_FAVICON: ${{vars.TACHIYOMI_FAVICON}}
+      - name: Add repo metadata
+        run: |
+          jq -n > repo/repo.json \
+            --arg name "$REPO_NAME" \
+            --arg website "${PAGE_URL@L}" \
+            --arg signingKeyFingerprint "$FINGERPRINT" \
+            '{meta: {$name, $website, $signingKeyFingerprint}}'
+        env:
+          REPO_NAME: ${{github.repository_owner}}
+          FINGERPRINT: ${{vars.KEY_FINGERPRINT}}
+          PAGE_URL: https://${{github.repository_owner}}.github.io/${{github.event.repository.name}}/
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
