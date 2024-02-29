@@ -90,7 +90,6 @@ jobs:
           done
           curl -LSs "$INSPECTOR_LINK" -o Inspector.jar
           java -jar Inspector.jar repo/apk /tmp/output.json /tmp &>/dev/null
-          declare -i vcode nsfw
           TOOLS=$(find "$ANDROID_HOME/build-tools" -maxdepth 1 -type d | tail -1)
           for apk in repo/apk/*.apk; do
             badging="$("$TOOLS"/aapt dump --include-meta-data badging "$apk")"

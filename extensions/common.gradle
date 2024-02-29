@@ -25,9 +25,8 @@ android {
     }
 
     defaultConfig {
-        minSdk AndroidConfig.minSdk
-        targetSdk AndroidConfig.targetSdk
-        compileSdk AndroidConfig.compileSdk
+        minSdk AndroidConfig.MIN_SDK
+        compileSdk AndroidConfig.COMPILE_SDK
         applicationIdSuffix "${parent.name}.${project.name}"
         versionCode extVersionCode + (theme?.baseVersionCode ?: 0)
         versionName "$libVersion.$versionCode"
@@ -95,4 +94,6 @@ dependencies {
 }
 
 preBuild.dependsOn(lintKotlin)
-lintKotlin.dependsOn(formatKotlin)
+
+if (System.getenv("CI") != "true")
+    lintKotlin.dependsOn(formatKotlin)

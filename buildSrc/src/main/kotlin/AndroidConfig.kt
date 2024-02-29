@@ -1,6 +1,4 @@
-@Suppress("ConstPropertyName", "unused")
 object AndroidConfig {
-    const val compileSdk = 34
-    const val minSdk = 21
-    const val targetSdk = 34
+    const val MIN_SDK = 21
+    const val COMPILE_SDK = 34
 }

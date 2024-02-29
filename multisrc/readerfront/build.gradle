@@ -1,7 +1,0 @@
-ext.baseVersionCode = 9
-
-apply from: parent.file('common.gradle')
-
-dependencies {
-    implementation(project(":lib:i18n"))
-}

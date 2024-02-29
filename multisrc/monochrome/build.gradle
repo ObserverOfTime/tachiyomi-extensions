@@ -1,3 +1,0 @@
-ext.baseVersionCode = 4
-
-apply from: parent.file('common.gradle')
