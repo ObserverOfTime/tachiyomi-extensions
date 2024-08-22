@@ -6,6 +6,8 @@ def libVersion = libs.versions.extensions.get()[0..2]
 def theme = ext.has("extFactory") ? project(":multisrc:$extFactory") : null
 def keyStoreFile = System.getenv("KEY_STORE_FILE") ?: "$rootDir/signingkey.jks"
 
+if (theme != null) evaluationDependsOn(theme.path)
+
 android {
     namespace "eu.kanade.tachiyomi.extension"
 

@@ -26,7 +26,7 @@ jobs:
           java-version: 17
           distribution: temurin
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
       - name: Prepare signing key
         run: base64 -d <<< "$SIGNING_KEY" > signingkey.jks
         env:
