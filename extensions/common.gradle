@@ -2,7 +2,7 @@ apply plugin: "com.android.application"
 apply plugin: "kotlin-android"
 apply plugin: "org.jmailen.kotlinter"
 
-def libVersion = libs.versions.extensions.get()[0..2]
+def libVersion = libs.versions.extensions.version.get()[1..3]
 def theme = ext.has("extFactory") ? project(":multisrc:$extFactory") : null
 def keyStoreFile = System.getenv("KEY_STORE_FILE") ?: "$rootDir/signingkey.jks"
 
@@ -67,22 +67,22 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = JavaVersion.VERSION_17.toString()
         freeCompilerArgs += "-opt-in=kotlinx.serialization.ExperimentalSerializationApi"
     }
+}
 
-    kotlinter {
-        experimentalRules = true
-        disabledRules = [
-            "experimental:argument-list-wrapping",
-            "experimental:comment-wrapping",
-        ]
-    }
+kotlinter {
+    experimentalRules = true
+    disabledRules = [
+        "experimental:argument-list-wrapping",
+        "experimental:comment-wrapping",
+    ]
 }
 
 repositories {

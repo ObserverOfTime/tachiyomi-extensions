@@ -1,3 +1,5 @@
+* text=auto
+
 /lib/** linguist-vendored
 /buildSrc/** linguist-vendored
 /core/** linguist-vendored
@@ -6,4 +8,4 @@
 /.editorconfig linguist-vendored
 /gradle/wrapper/* linguist-generated
 /gradlew linguist-generated
-/gradlew.bat linguist-generated
+/gradlew.bat linguist-generated eol=crlf

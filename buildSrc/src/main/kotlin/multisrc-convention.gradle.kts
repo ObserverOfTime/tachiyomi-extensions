@@ -18,7 +18,13 @@ android {
         assets.setSrcDirs(listOf("assets"))
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
     kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
         freeCompilerArgs += "-opt-in=kotlinx.serialization.ExperimentalSerializationApi"
     }
 }
@@ -26,8 +32,8 @@ android {
 kotlinter {
     experimentalRules = true
     disabledRules = arrayOf(
-            "experimental:argument-list-wrapping",
-            "experimental:comment-wrapping",
+        "experimental:argument-list-wrapping",
+        "experimental:comment-wrapping",
     )
 }
 

@@ -17,6 +17,10 @@ android {
     }
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 dependencies {
     val libs = versionCatalogs.named("libs")
     compileOnly(libs.findBundle("common").get())

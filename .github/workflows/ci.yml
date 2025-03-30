@@ -33,8 +33,8 @@ jobs:
           SIGNING_KEY: ${{secrets.SIGNING_KEY}}
       - name: Clone Pepper&Carrot extension
         run: |
-          git clone --depth=1 $REPO_URL /tmp/peppercarrot
-          cp -r /tmp/peppercarrot/{res,src} extensions/all/peppercarrot
+          git clone --depth=1 $REPO_URL "$RUNNER_TEMP"/peppercarrot
+          cp -r "$RUNNER_TEMP"/peppercarrot/{res,src} extensions/all/peppercarrot
         env:
           REPO_URL: https://framagit.org/ObserverOfTime/tachiyomi-peppercarrot
       - name: Build all extensions
@@ -50,6 +50,7 @@ jobs:
           name: extension-apks
           path: "**/*.apk"
           retention-days: 1
+          overwrite: true
 
   publish_repo:
     name: Publish repo
@@ -73,8 +74,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: extension-apks
-          path: /tmp/apk-artifacts
-          overwrite: true
+          path: ${{runner.temp}}/apk-artifacts
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -85,11 +85,11 @@ jobs:
         run: |
           shopt -s globstar nullglob
           mkdir -p repo/{apk,icon}
-          for apk in /tmp/apk-artifacts/**/*.apk; do
+          for apk in "$RUNNER_TEMP"/apk-artifacts/**/*.apk; do
             : "${apk##*/}"; cp "$apk" "repo/apk/${_/-release/}"
           done
           curl -LSs "$INSPECTOR_LINK" -o Inspector.jar
-          java -jar Inspector.jar repo/apk /tmp/output.json /tmp &>/dev/null
+          java -jar Inspector.jar repo/apk "$RUNNER_TEMP"/output.json "$RUNNER_TEMP" &>/dev/null
           TOOLS=$(find "$ANDROID_HOME/build-tools" -maxdepth 1 -type d | tail -1)
           for apk in repo/apk/*.apk; do
             badging="$("$TOOLS"/aapt dump --include-meta-data badging "$apk")"
@@ -102,7 +102,7 @@ jobs:
             label=$(grep -Po "label='\K[^']+" <<< "$application")
             lang=$(grep -Po "tachiyomi-\K[^\.]+" <<< "$apk")
             icon=$(grep -Po "application-icon-320.*'\K[^']+" <<< "$badging")
-            source_info=$(jq ".\"$pkgname\"" < /tmp/output.json)
+            source_info=$(jq ".\"$pkgname\"" < "$RUNNER_TEMP"/output.json)
             source_len=$(jq length <<< "$source_info")
             if [[ $source_len -eq 1 ]]; then
                 source_lang=$(jq -r '.[0].lang' <<< "$source_info")
