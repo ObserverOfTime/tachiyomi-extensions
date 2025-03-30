@@ -8,6 +8,7 @@ This repository contains my extensions for the Tachiyomi app and its derivatives
 
 - League of Legends
 - Pepper&Carrot
+- Unsounded
 - vgperson
 
 ### Multi-source

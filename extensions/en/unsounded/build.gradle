@@ -1,0 +1,7 @@
+ext {
+    extName = 'Unsounded'
+    extClass = '.Unsounded'
+    extVersionCode = 1
+}
+
+apply from: parent.parent.file('common.gradle')
